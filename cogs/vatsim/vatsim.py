@@ -46,10 +46,17 @@ class Vatsim(commands.Cog):
                     js = await r.json()
                     await self.process(session, js)
 
+
+    async def on_load(self):
+        self.periodic.start()
+
+    async def on_unload(self):
+        self.periodic.cancel()
+
+
 async def setup(bot):
     v = Vatsim(bot)
     await bot.add_cog(v)
-    v.periodic.start()
 
 async def teardown(bot):
     await bot.remove_cog('Vatsim')
