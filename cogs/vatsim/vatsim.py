@@ -13,6 +13,7 @@ class Vatsim(commands.Cog):
     async def send_once(self, s):
         #self.channel = self.bot.get_channel(_BOT_TEST_ID)
         self.channel = self.bot.get_channel(_DISPATCH)
+        print(f'Adding msg {s}')
         if s not in self.sent_msgs:
             await self.channel.send(s)
             self.sent_msgs.add(s)
