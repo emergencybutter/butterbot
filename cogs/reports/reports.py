@@ -137,7 +137,6 @@ class FlightReport(commands.Cog):
                 table.dump_to_file('/var/www/html/data/flights-table.html', flights)
                 for flight in flights:
                     fid = str(flight['id'])
-                    print(f'fid: {type(fid)} {fid}')
                     pilot_data = await self.fshub.get_pilot(session, voyager.VYA_AIRLINE, flight['user']['id'])
                     if pilot_data is not None:
                         pilot_data = pilot_data['data']
@@ -149,7 +148,6 @@ class FlightReport(commands.Cog):
                                 if achievement_data:
                                     print(f"Multiple VYA achievements for flight {fid}")
                                 achievement_data = achievement
-                        print(achievement_data)
                     shots_data = None
                     if 'SCREENSHOTS' in flight['flags']:
                         shots_data = await self.fshub.get_flight_screenshots(session, fid)
