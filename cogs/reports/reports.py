@@ -212,5 +212,5 @@ async def setup(bot):
 
 async def teardown(bot):
     cog = bot.get_cog('FlightReport')
-    cog.on_unload()
+    await cog.on_unload()
     await bot.remove_cog('FlightReport')
