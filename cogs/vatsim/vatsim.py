@@ -58,7 +58,10 @@ class Vatsim(commands.Cog):
 async def setup(bot):
     v = Vatsim(bot)
     await bot.add_cog(v)
+    await v.on_load()
+
 
 async def teardown(bot):
+    cog = bot.get_cog('Vatsim')
+    await cog.on_unload()
     await bot.remove_cog('Vatsim')
-
