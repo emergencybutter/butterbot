@@ -28,10 +28,7 @@ async def reload(ctx, *args):
         exts.append(x)
     for x in exts:
         print(x)
-        if len(args)==0:
-            await ctx.send(f'reloading {x}')
-            await bot.reload_extension(x)
-        elif x.split('.')[-1] == args[0]:
+        if len(args) == 0 or x.split('.')[-1] == args[0]:
             await ctx.send(f'reloading {x}')
             await bot.reload_extension(x)
     await ctx.send('reloaded')
