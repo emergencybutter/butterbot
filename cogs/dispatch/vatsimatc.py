@@ -27,9 +27,9 @@ class Station:
 
     def score(self):
         if self.type == "ATIS":
-            score = 50
+            score = 20
         if self.type == "CTR":
-            score = 100
+            score = 15
         if self.type in ("APP", "DEP"):
             score = 100
         if self.type == "TWR":

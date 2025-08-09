@@ -38,7 +38,7 @@ class Airport:
         return d
 
 
-class AirportFilter:
+class AirportPreferences:
     types: Set[str]
     continents: Set[str]
 
@@ -49,12 +49,18 @@ class AirportFilter:
     def airport_filter(self, x: Airport) -> bool:
         if self.continents and not x.continent in self.continents:
             return False
-        if self.types and not x.type in self.types:
-            return False
+        #if self.types and not x.type in self.types:
+        #    return False
         return True
 
     def filter_airports(self, airports: List[Airport]) -> List[Airport]:
         return list(filter(self.airport_filter, airports))
+
+    def airport_score(self, x: Airport) -> float:
+        if self.types and not x.type in self.types:
+            return 0.5
+        return 1.0
+
 
 
 class Airports:
@@ -72,8 +78,8 @@ class Airports:
                 if airport.code:
                     self.airports.append(airport)
 
-    def pick_random(self, ap_filter: AirportFilter) -> Optional[Airport]:
-        filtered_airports = ap_filter.filter_airports(self.airports)
+    def pick_random(self, ap_prefs: AirportPreferences) -> Optional[Airport]:
+        filtered_airports = ap_prefs.filter_airports(self.airports)
         if not filtered_airports:
             return None
         return random.choice(filtered_airports)
@@ -81,12 +87,12 @@ class Airports:
     def airports_sorted_by_distance_to(
         self,
         ref_airport: Airport,
-        ap_filter: AirportFilter,
+        ap_prefs: AirportPreferences,
         min_distance_nm: int = 200,
         max_distance_nm: int = 400,
     ) -> List[Airport]:
         filtered_airports_with_distance = []
-        for airport in ap_filter.filter_airports(self.airports):
+        for airport in ap_prefs.filter_airports(self.airports):
             d = ref_airport.distance(airport)
             if d < min_distance_nm:
                 continue
@@ -103,7 +109,7 @@ class Airports:
 
 class AirportPairPicker:
     airports: Airports
-    airport_filter: AirportFilter
+    airport_filter: AirportPreferences
     aircraft_type: str
 
     def __init__(self, airports: Airports, aircrafts: aircraft_lib.Aircrafts):
@@ -133,17 +139,17 @@ class AirportPairPicker:
         return (min_, max_)
 
     def pick_pair(
-        self, hours: float, ap_filter: AirportFilter
+        self, hours: float, ap_prefs: AirportPreferences
     ) -> Tuple[Optional[Airport], Optional[Airport], Dict[str, str]]:
         min_distance_nm, max_distance_nm = self.distances_from_type(hours)
         for i in range(1, 25):
-            airport1 = self.airports.pick_random(ap_filter=ap_filter)
+            airport1 = self.airports.pick_random(ap_prefs=ap_prefs)
             if not airport1:
                 return None, None, {}
             print(f'->{airport1.code}')
             airports = self.airports.airports_sorted_by_distance_to(
                 airport1,
-                ap_filter=ap_filter,
+                ap_prefs=ap_prefs,
                 min_distance_nm=int(min_distance_nm),
                 max_distance_nm=int(max_distance_nm),
             )
@@ -170,11 +176,11 @@ class AirportPairPickerVatsim(AirportPairPicker):
         return self.vatsim_scores[code]
 
     def pick_pair(
-        self, hours: float, ap_filter: AirportFilter
+        self, hours: float, ap_prefs: AirportPreferences
     ) -> Tuple[Optional[Airport], Optional[Airport], Dict[str, str]]:
         dbg_hash = dict()
         self.kept = []
-        self.score_airports_vatsim(ap_filter)
+        self.score_airports_vatsim(ap_prefs)
         min_distance_nm, max_distance_nm = self.distances_from_type(hours)
         print(
             f"Picking pair from {len(self.vatsim_scored_airports)} airports with distance within {min_distance_nm} and {max_distance_nm}"
@@ -211,7 +217,6 @@ class AirportPairPickerVatsim(AirportPairPicker):
         # pick out of self.kept
         _, (a1, a2) = random.choice(self.kept)
         if a1:
-
             def dbgstr(a):
                 a_dbgstr = []
                 a_coverage = vatsimatc.atc_presence.list_coverage(a.code)
@@ -230,10 +235,10 @@ class AirportPairPickerVatsim(AirportPairPicker):
         # rather land there.
         return a2, a1, dbg_hash
 
-    def score_airports_vatsim(self, ap_filter: AirportFilter):
+    def score_airports_vatsim(self, ap_prefs: AirportPreferences):
         score_buckets: Dict[int, List[Airport]] = {}
-        for airport in ap_filter.filter_airports(self.airports.airports):
-            score = vatsimatc.atc_presence.score(airport.code)
+        for airport in ap_prefs.filter_airports(self.airports.airports):
+            score = int(vatsimatc.atc_presence.score(airport.code) * ap_prefs.airport_score(airport))
             self.vatsim_scores[airport.code] = score
             if score == 0:
                 continue
@@ -251,7 +256,7 @@ class AirportPairPickerVatsim(AirportPairPicker):
         l: List[Tuple[int, Tuple[Airport, Airport]]],
         score: int,
         data: Tuple[Airport, Airport],
-        n: int = 20,
+        n: int = 10,
     ):
         if len(l) >= n:
             if score < l[0][0]:

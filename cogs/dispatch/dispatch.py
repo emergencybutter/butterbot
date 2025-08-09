@@ -16,15 +16,15 @@ class Dispatch(commands.Cog):
 
     def choose(self, args, ch_name):
         vatsim = False
-        ap_filter = picker.AirportFilter()
+        ap_prefs = picker.AirportPreferences()
         nargs = []
         for arg in args:
             if arg == "vatsim":
                 vatsim = True
             elif arg in {'AF', 'AN', 'SA', 'NA', 'AS', 'OC', 'EU'}:
-                ap_filter.continents.add(arg)
+                ap_prefs.continents.add(arg)
             elif arg in {'small', 'medium', 'large'}:
-                ap_filter.types.add(f'{arg}_airport')
+                ap_prefs.types.add(f'{arg}_airport')
             else:
                 nargs.append(arg)
         args = nargs
@@ -47,13 +47,15 @@ class Dispatch(commands.Cog):
             airport1,
             airport2,
             debugdict,
-        ) = app.pick_pair(hours=duration_h, ap_filter=ap_filter)
+        ) = app.pick_pair(hours=duration_h, ap_prefs=ap_prefs)
         if airport1 is None or airport2 is None:
             return "Cannot find suitable airports, sorry", None
         pretty_distance = "{0:0.2f}".format(airport2.distance(airport1))
         pretty_aircraft = self.aircrafts.get(app.aircraft_type).Model_FAA
         simbrief_url = f"https://dispatch.simbrief.com/options/custom?airline=VYA&type={app.aircraft_type}&orig={airport1.code}&dest={airport2.code}&manualrmk=Callsign%20Voyager%20-%20visit%20flyvoyager.net"
         resp = f"Fly the {pretty_aircraft} from {airport1.code} to {airport2.code} ({pretty_distance}nm). [File in Simbrief]({simbrief_url})."
+
+        print(f'{debugdict}')
         
         emdbg = discord.Embed(
             title="dispatch bot log log",
