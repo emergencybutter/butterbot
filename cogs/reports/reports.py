@@ -129,6 +129,7 @@ class FlightReport(commands.Cog):
         self.state.save_reports_state()
 
     async def sync_from_fshub(self, ctx):
+        print('detected flight')
         async with self.lock:
             async with aiohttp.ClientSession() as session:
                 flights = await self.fshub.get_airline_flights_from(session, airline=voyager.VYA_AIRLINE, cursor=self.state.get_last_bookmarked_flight())
@@ -159,7 +160,7 @@ class FlightReport(commands.Cog):
                     embed = voyager.make_flight_embed(fid, f'Flight #{fid}', flight, shots_data, achievement_data, pilot_data)
                     await self.sync_to_discord(ctx, fid, embed, achievement_data is not None)
 
-    @tasks.loop(seconds=10*60)
+    @tasks.loop(seconds=3*60)
     async def periodic(self):
         print('Running periodic')
         await self.sync_from_fshub(self.channel)
@@ -183,6 +184,7 @@ class FlightReport(commands.Cog):
             oldstats = json.loads(f.read())
         new_flights = int(stats['data']['all_time']['total_flights'])
         old_flights = int(oldstats['data']['all_time']['total_flights'])
+        print(f'new: {new_flights} old: {old_flights}')
         if new_flights != old_flights:
             await self.sync_from_fshub(self.channel)
         old_hundreds = math.floor(old_flights/100)
