@@ -62,9 +62,6 @@ class Vatsim(commands.Cog):
             rules, dep, arr, ac, rmk = fp['flight_rules'], fp['departure'], fp['arrival'], fp['aircraft_faa'], fp['remarks']
             if not re.match(r'VYA.*', callsign, re.IGNORECASE) and not re.match(r'.*\b(flyvoyager|voyager)\b.*', rmk, re.IGNORECASE):
                 continue
-
-            print(cid)
-            print(self.vatsim_id_to_handles.get(str(cid), {}))
             discord_id = self.vatsim_id_to_handles.get(str(cid), {}).get('discord', None)
             if discord_id:
                 name += f' (<@{discord_id}>)'
