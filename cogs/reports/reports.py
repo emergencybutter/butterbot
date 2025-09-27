@@ -11,7 +11,7 @@ import math
 import os
 
 _EMERGENCY_SERVER_TEST_CHANEL = 1294385730830995487
-_FLIGHT_BACKREAD = 10
+_FLIGHT_BACKREAD = 25
 _ACHIEVEMENT_REACTION = '✅'
 
 class TrackState():
@@ -132,13 +132,13 @@ class FlightReport(commands.Cog):
         print('detected flight')
         async with self.lock:
             async with aiohttp.ClientSession() as session:
-                flights = await self.fshub.get_airline_flights_from(session, airline=voyager.VYA_AIRLINE, cursor=self.state.get_last_bookmarked_flight())
+                flights = await self.fshub.get_airline_flights(session, airline=voyager.VYA_AIRLINE, cursor=self.state.get_last_bookmarked_flight())
                 if len(flights) >= _FLIGHT_BACKREAD:
                     self.state.set_last_bookmarked_flight(int(flights[-_FLIGHT_BACKREAD]['id']))
                 table.dump_to_file('/var/www/html/data/flights-table.html', flights)
                 for flight in flights:
                     fid = str(flight['id'])
-                    pilot_data = await self.fshub.get_pilot(session, voyager.VYA_AIRLINE, flight['user']['id'])
+                    pilot_data = await self.fshub.get_airline_pilot_stats(session, voyager.VYA_AIRLINE, flight['user']['id'])
                     if pilot_data is not None:
                         pilot_data = pilot_data['data']
                     achievement_data = None
