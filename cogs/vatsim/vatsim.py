@@ -17,7 +17,6 @@ class Vatsim(commands.Cog):
         self.sent_msgs = set()
         self.fshub = fshub.FsHub()
         self.fshub.load_key()
-        self.vatsim_id_to_handles = {}
         with open(_STATE_PATH) as f:
             self.vatsim_id_to_handles = json.loads(f.read())
 
@@ -39,7 +38,6 @@ class Vatsim(commands.Cog):
                         handles['discord'] = p['discord_id']
                     if handles:
                         self.vatsim_id_to_handles[vatsim_id] = handles
-                        print(f'{vatsim_id} -> {handles}')
         with open(_STATE_PATH + '.tmp', 'w') as f:
             f.write(json.dumps(self.vatsim_id_to_handles))
         os.rename(_STATE_PATH + '.tmp', _STATE_PATH)
